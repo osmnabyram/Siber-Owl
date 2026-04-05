@@ -1,106 +1,104 @@
-# VPN + TOR Otomatik Başlatıcı
+# VPN + TOR Automatic Launcher
 
-## Genel Bakış
+## Overview
 
-Bu Python scripti, **OpenVPN** ve **TOR** servislerini otomatik olarak başlatmak, bağlantı durumunu izlemek ve kopma durumunda süreçleri güvenli biçimde sonlandırmak için tasarlanmıştır.
+This Python script is designed to automatically initialize **OpenVPN** and **TOR** services, monitor connection status, and securely terminate processes in case of disconnection.
 
-Amaç; VPN bağlantısı **başarılı olmadan TOR’u başlatmamak**, bağlantı koptuğunda ise tüm servisleri temiz şekilde kapatmaktır.
+The objective is to **not launch TOR unless the VPN connection is successful** and to cleanly shut down all services upon connection loss.
 
-Script, görsel bir ASCII banner ile başlar ve her servisi **ayrı terminal penceresinde** çalıştırır.
+The script begins with a visual ASCII banner and executes each service in a **separate terminal window**.
 
-<img width="1265" height="976" alt="Ekran görüntüsü 2026-01-07 161823" src="https://github.com/user-attachments/assets/7960072b-1a6f-48dc-b076-dafaed6d1921" />
-
----
-
-## Temel Özellikler
-
-• OpenVPN bağlantısını otomatik başlatır  
-• VPN (tun0) arayüzünü aktif olarak kontrol eder  
-• VPN başarılıysa TOR servisini başlatır  
-• VPN koparsa TOR otomatik kapatılır  
-• CTRL+C ile tüm süreçler güvenli şekilde durdurulur  
-• Root / sudo kontrolü otomatik yapılır  
-• Kullanıcıdan ek giriş gerekmez  
+<img width="1265" height="976" alt="Screenshot 2026-01-07 161823" src="https://github.com/user-attachments/assets/7960072b-1a6f-48dc-b076-dafaed6d1921" />
 
 ---
 
-## Gereksinimler
+## Core Features
 
-Aşağıdaki bileşenlerin sistemde kurulu olması gerekir:
-
-• Python 3.x  
-• OpenVPN  
-• TOR  
-• GNOME Terminal  
-• Linux tabanlı işletim sistemi  
-
----
-
-## Dosya Yapısı
-
-Scriptin düzgün çalışması için aşağıdaki dosyalar **home dizininde** bulunmalıdır:
-
-• `~/proton.ovpn` → VPN konfigürasyon dosyası  
-• `~/proton_pass.txt` → VPN kullanıcı adı / parola dosyası  
+- Automatically initiates OpenVPN connection
+- Actively monitors VPN (tun0) interface
+- Launches TOR service upon successful VPN connection
+- Automatically terminates TOR if VPN disconnects
+- All processes are safely stopped with CTRL+C
+- Root / sudo verification is performed automatically
+- No additional user input is required
 
 ---
 
-## Kurulum
+## Requirements
 
-Script dosyasını çalıştırılabilir hale getirin:
+The following components must be installed on the system:
 
+- Python 3.x
+- OpenVPN
+- TOR
+- GNOME Terminal
+- Linux-based operating system
+
+---
+
+## File Structure
+
+The following files must be located in the **home directory** for the script to function properly:
+
+- `~/proton.ovpn` → VPN configuration file
+- `~/proton_pass.txt` → VPN username / password file
+
+---
+
+## Installation
+
+Make the script file executable:
 ```bash
 chmod +x vpn_tor_launcher.py
 ```
 
-# Kullanım
+## Usage
 
-Script **root** yetkisiyle çalıştırılmalıdır:
-
+The script must be executed with **root** privileges:
 ```bash
 sudo python3 owl.py
 ```
 
-## Çalıştırıldığında
+## Upon Execution
 
-• Sol terminalde OpenVPN başlatılır  
-• VPN bağlantısı doğrulanır (`tun0`)  
-• Sağ terminalde TOR başlatılır  
-• VPN bağlantısı koparsa TOR otomatik olarak kapatılır  
-
----
-
-## Çalışma Akışı
-
-• Ekran temizlenir ve ASCII banner gösterilir  
-• Gerekli dosyaların varlığı kontrol edilir  
-• OpenVPN ayrı bir terminal penceresinde başlatılır  
-• `tun0` ağ arayüzü sürekli izlenir  
-• VPN bağlantısı başarılıysa TOR servisi başlatılır  
-• VPN bağlantısı koparsa tüm servisler güvenli şekilde durdurulur  
+- OpenVPN is launched in the left terminal
+- VPN connection is verified (`tun0`)
+- TOR is launched in the right terminal
+- If VPN connection is lost, TOR automatically terminates
 
 ---
 
-## Hata Durumları
+## Workflow
 
-• VPN yapılandırma dosyaları bulunamazsa script çalışmayı durdurur  
-• VPN bağlantısı başarısız olursa TOR başlatılmaz  
-• `tun0` arayüzü kaybolursa TOR otomatik olarak kapatılır  
-
----
-
-## Güvenlik Notları
-
-• TOR, VPN bağlantısı olmadan **asla** başlatılmaz  
-• Bağlantı durumu aktif olarak izlenir  
-• Süreçler arka planda sahipsiz şekilde bırakılmaz  
+- Screen is cleared and ASCII banner is displayed
+- Presence of required files is verified
+- OpenVPN is launched in a separate terminal window
+- `tun0` network interface is continuously monitored
+- Upon successful VPN connection, TOR service is initiated
+- Upon VPN disconnection, all services are safely terminated
 
 ---
 
-## Yasal Uyarı
+## Error Conditions
 
-Bu araç yalnızca **eğitim**, **laboratuvar**, **CTF** ve **açık izin verilmiş** ortamlarda kullanılmak üzere geliştirilmiştir.  
+- Script halts if VPN configuration files are not found
+- TOR is not launched if VPN connection fails
+- TOR automatically terminates if `tun0` interface is lost
 
-Yetkisiz ağlarda veya sistemlerde kullanımı **yasadışıdır** ve hukuki sorumluluk doğurur.  
+---
 
-Geliştirici, aracın kötüye kullanımından doğabilecek herhangi bir hukuki veya teknik zarardan **sorumlu değildir**.
+## Security Notes
+
+- TOR is **never** launched without an active VPN connection
+- Connection status is actively monitored
+- Processes are not left running unattended in the background
+
+---
+
+## Legal Notice
+
+This tool is developed exclusively for use in **educational**, **laboratory**, **CTF**, and **authorized** environments.
+
+Use on unauthorized networks or systems is **illegal** and incurs legal liability.
+
+The developer assumes **no responsibility** for any legal or technical damages resulting from misuse of this tool.
