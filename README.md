@@ -19,6 +19,10 @@ A Python supervisor for OpenVPN and TOR that enforces one rule — no anonymized
 
 ---
 
+<div align="center">
+<img src="assets/how-it-works.svg" alt="How it works: an animated diagram of the tool's core flow." width="820" />
+</div>
+
 ## Overview
 
 Owl removes a common operational mistake: routing traffic through TOR while the VPN is silently down. It starts OpenVPN, waits for the tunnel to come up, and only then launches TOR. It keeps watching the `tun0` interface, and if the VPN drops it shuts TOR down immediately so nothing is left running unprotected. Each service runs in its own terminal window.
