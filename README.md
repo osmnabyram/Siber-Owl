@@ -1,104 +1,76 @@
-# VPN + TOR Automatic Launcher
+<div align="center">
+
+# Owl
+
+### VPN-first launcher: TOR never starts unless the VPN is up, and dies with it.
+
+A Python supervisor for OpenVPN and TOR that enforces one rule — no anonymized traffic without a verified tunnel — and cleans up every process the moment the connection drops.
+
+![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Platform](https://img.shields.io/badge/Platform-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+![OpenVPN](https://img.shields.io/badge/Uses-OpenVPN%20%2B%20TOR-e53935?style=for-the-badge)
+![Root](https://img.shields.io/badge/Requires-root-121212?style=for-the-badge&logo=gnubash&logoColor=white)
+
+</div>
+
+<div align="center">
+<img width="1265" alt="Owl interface" src="https://github.com/user-attachments/assets/7960072b-1a6f-48dc-b076-dafaed6d1921" />
+</div>
+
+---
 
 ## Overview
 
-This Python script is designed to automatically initialize **OpenVPN** and **TOR** services, monitor connection status, and securely terminate processes in case of disconnection.
-
-The objective is to **not launch TOR unless the VPN connection is successful** and to cleanly shut down all services upon connection loss.
-
-The script begins with a visual ASCII banner and executes each service in a **separate terminal window**.
-
-<img width="1265" height="976" alt="Screenshot 2026-01-07 161823" src="https://github.com/user-attachments/assets/7960072b-1a6f-48dc-b076-dafaed6d1921" />
+Owl removes a common operational mistake: routing traffic through TOR while the VPN is silently down. It starts OpenVPN, waits for the tunnel to come up, and only then launches TOR. It keeps watching the `tun0` interface, and if the VPN drops it shuts TOR down immediately so nothing is left running unprotected. Each service runs in its own terminal window.
 
 ---
 
 ## Core Features
 
-- Automatically initiates OpenVPN connection
-- Actively monitors VPN (tun0) interface
-- Launches TOR service upon successful VPN connection
-- Automatically terminates TOR if VPN disconnects
-- All processes are safely stopped with CTRL+C
-- Root / sudo verification is performed automatically
-- No additional user input is required
+- Starts the OpenVPN connection automatically
+- Actively monitors the VPN (`tun0`) interface
+- Launches TOR only after the VPN is confirmed up
+- Terminates TOR automatically if the VPN disconnects
+- Stops all processes cleanly on Ctrl+C
+- Verifies root privileges on startup
+- No additional user input required once running
 
 ---
 
 ## Requirements
 
-The following components must be installed on the system:
+| Component | Notes |
+|---|---|
+| Python 3.x | Interpreter |
+| OpenVPN | VPN client |
+| TOR | Anonymity service |
+| GNOME Terminal | Each service opens in its own window |
+| Linux + root | Required to bring up the tunnel |
 
-- Python 3.x
-- OpenVPN
-- TOR
-- GNOME Terminal
-- Linux-based operating system
+### Expected files
 
----
+These must exist in your home directory:
 
-## File Structure
-
-The following files must be located in the **home directory** for the script to function properly:
-
-- `~/proton.ovpn` → VPN configuration file
-- `~/proton_pass.txt` → VPN username / password file
+| File | Purpose |
+|---|---|
+| `~/proton.ovpn` | VPN configuration file |
+| `~/proton_pass.txt` | VPN username / password file |
 
 ---
 
 ## Installation
 
-Make the script file executable:
 ```bash
-chmod +x vpn_tor_launcher.py
+git clone https://github.com/osmnabyram/Siber-Owl.git
+cd Siber-Owl
+chmod +x Owl.py
+sudo python3 Owl.py
 ```
 
-## Usage
-
-The script must be executed with **root** privileges:
-```bash
-sudo python3 owl.py
-```
-
-## Upon Execution
-
-- OpenVPN is launched in the left terminal
-- VPN connection is verified (`tun0`)
-- TOR is launched in the right terminal
-- If VPN connection is lost, TOR automatically terminates
+On execution Owl brings up OpenVPN, verifies `tun0`, launches TOR in a second terminal, and keeps monitoring the link until you exit.
 
 ---
 
-## Workflow
+## Responsible Use
 
-- Screen is cleared and ASCII banner is displayed
-- Presence of required files is verified
-- OpenVPN is launched in a separate terminal window
-- `tun0` network interface is continuously monitored
-- Upon successful VPN connection, TOR service is initiated
-- Upon VPN disconnection, all services are safely terminated
-
----
-
-## Error Conditions
-
-- Script halts if VPN configuration files are not found
-- TOR is not launched if VPN connection fails
-- TOR automatically terminates if `tun0` interface is lost
-
----
-
-## Security Notes
-
-- TOR is **never** launched without an active VPN connection
-- Connection status is actively monitored
-- Processes are not left running unattended in the background
-
----
-
-## Legal Notice
-
-This tool is developed exclusively for use in **educational**, **laboratory**, **CTF**, and **authorized** environments.
-
-Use on unauthorized networks or systems is **illegal** and incurs legal liability.
-
-The developer assumes **no responsibility** for any legal or technical damages resulting from misuse of this tool.
+Owl is a privacy and lab automation tool intended for **educational, lab, CTF, and authorized** use. Use it in line with local law and the terms of the services involved. The author accepts no responsibility for misuse.
