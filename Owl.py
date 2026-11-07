@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
-import os
-import time
-import subprocess
-import sys
+import os, time, subprocess, sys, glob
 
 RESET = "\033[0m"
 RED_BOLD = "\033[1;31m"
 GREEN_BOLD = "\033[1;32m"
 WHITE_BOLD = "\033[1;37m"
-YELLOW_BOLD = "\033[1;33m"
 
 def clear_screen():
     os.system("cls" if os.name == "nt" else "clear")
@@ -54,58 +50,53 @@ ascii_art = r"""
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢉⢻⠶⡃⣠⣶⡾⠇⡏⠀
 """
 
-def check_vpn_connection():
-    timeout = 0
-    while timeout < 30:
-        if os.path.exists("/sys/class/net/tun0"):
-            return True
-        time.sleep(1)
-        timeout += 1
-    return False
+def vpn_aktif_mi():
+    arayuzler = glob.glob("/sys/class/net/tun*") + glob.glob("/sys/class/net/proton*")
+    return len(arayuzler) > 0
 
 def main():
     clear_screen()
     print(RED_BOLD + ascii_art + RESET)
 
-    ev_klasoru = os.path.expanduser("~")
-    ovpn_dosyasi = os.path.join(ev_klasoru, "proton.ovpn")
-    sifre_dosyasi = os.path.join(ev_klasoru, "proton_pass.txt")
-    
-    if not os.path.exists(ovpn_dosyasi) or not os.path.exists(sifre_dosyasi):
-        print(f"{RED_BOLD}[!] HATA: Dosyalar bulunamadı!{RESET}")
-        sys.exit()
+    ev = os.path.expanduser("~")
+    ovpn = os.path.join(ev, "proton.ovpn")
+    sifre = os.path.join(ev, "proton_pass.txt")
 
-    if os.geteuid() == 0:
-        vpn_cmd = f"openvpn --config {ovpn_dosyasi} --auth-user-pass {sifre_dosyasi}"
-    else:
-        vpn_cmd = f"sudo openvpn --config {ovpn_dosyasi} --auth-user-pass {sifre_dosyasi}"
-    
-    tor_cmd = "tor"
+    for dosya in (ovpn, sifre):
+        if not os.path.exists(dosya):
+            print(f"{RED_BOLD}[!] HATA: {os.path.basename(dosya)} bulunamadı!{RESET}")
+            sys.exit(1)
+
+    vpn_cmd = f"openvpn --config {ovpn} --auth-user-pass {sifre}"
+    if os.geteuid() != 0:
+        vpn_cmd = "sudo " + vpn_cmd
 
     subprocess.Popen([
-        "gnome-terminal", "--geometry=80x24+0+0", "--", "bash", "-c", f"{vpn_cmd}; exec bash"
+        "gnome-terminal", "--geometry=90x28", "--", "bash", "-c",
+        f"{vpn_cmd}; exec bash"
     ])
 
-    if check_vpn_connection():
-        subprocess.Popen([
-            "gnome-terminal", "--geometry=80x24+800+0", "--", "bash", "-c", f"{tor_cmd}; exec bash"
-        ])
-
-        try:
-            while True:
-                if not os.path.exists("/sys/class/net/tun0"):
-                    os.system("sudo killall tor")
-                    sys.exit()
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print(f"\n\n{RED_BOLD}[!] Kapatılıyor...{RESET}")
-            os.system("sudo killall openvpn")
-            os.system("sudo killall tor")
-            sys.exit()
+    print(f"{WHITE_BOLD}[*] VPN bağlantısı bekleniyor...{RESET}")
+    for _ in range(30):
+        if vpn_aktif_mi():
+            print(f"{GREEN_BOLD}[+] VPN aktif. Çıkmak için Ctrl+C.{RESET}")
+            break
+        time.sleep(1)
     else:
-        print(f"{RED_BOLD}[!] HATA: VPN bağlantısı başarısız.{RESET}")
+        print(f"{RED_BOLD}[!] HATA: 30 saniyede bağlantı kurulamadı.{RESET}")
+        sys.exit(1)
+
+    try:
+        while True:
+            if not vpn_aktif_mi():
+                print(f"{RED_BOLD}[!] VPN bağlantısı koptu, openvpn kapatılıyor...{RESET}")
+                os.system("sudo killall openvpn")
+                sys.exit(1)
+            time.sleep(2)
+    except KeyboardInterrupt:
+        print(f"\n{RED_BOLD}[!] Kapatılıyor...{RESET}")
         os.system("sudo killall openvpn")
-        sys.exit()
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()
