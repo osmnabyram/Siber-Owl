@@ -2,14 +2,14 @@
 
 # Owl
 
-### VPN-first launcher: TOR never starts unless the VPN is up, and dies with it.
+### VPN watchdog: brings the tunnel up, then kills it clean the moment it drops.
 
-A Python supervisor for OpenVPN and TOR that enforces one rule — no anonymized traffic without a verified tunnel — and cleans up every process the moment the connection drops.
+A small Python supervisor for OpenVPN that enforces one rule — no half-open state. It launches the VPN, waits for the interface to come up, and keeps watching it; if the tunnel disappears it tears the connection down and exits so nothing is left running in a broken state.
 
 ![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
-![OpenVPN](https://img.shields.io/badge/Uses-OpenVPN%20%2B%20TOR-e53935?style=for-the-badge)
-![Root](https://img.shields.io/badge/Requires-root-121212?style=for-the-badge&logo=gnubash&logoColor=white)
+![OpenVPN](https://img.shields.io/badge/Uses-OpenVPN-e53935?style=for-the-badge)
+![Root](https://img.shields.io/badge/Requires-root%20%2F%20sudo-121212?style=for-the-badge&logo=gnubash&logoColor=white)
 
 </div>
 
@@ -25,18 +25,20 @@ A Python supervisor for OpenVPN and TOR that enforces one rule — no anonymized
 
 ## Overview
 
-Owl removes a common operational mistake: routing traffic through TOR while the VPN is silently down. It starts OpenVPN, waits for the tunnel to come up, and only then launches TOR. It keeps watching the `tun0` interface, and if the VPN drops it shuts TOR down immediately so nothing is left running unprotected. Each service runs in its own terminal window.
+Owl removes a common operational mistake: assuming the VPN is up when it has silently died. It starts OpenVPN in its own terminal, waits for the tunnel interface to appear, and from that point acts as a watchdog. It keeps polling the interface, and if the VPN drops it immediately shuts OpenVPN down and exits — so you never sit in a false sense of safety with a dead tunnel.
+
+The interface check accepts both standard OpenVPN (`tun*`) and ProtonVPN (`proton*`) interfaces.
 
 ---
 
 ## Core Features
 
-- Starts the OpenVPN connection automatically
-- Actively monitors the VPN (`tun0`) interface
-- Launches TOR only after the VPN is confirmed up
-- Terminates TOR automatically if the VPN disconnects
-- Stops all processes cleanly on Ctrl+C
-- Verifies root privileges on startup
+- Starts the OpenVPN connection automatically, in its own terminal window
+- Waits up to 30 seconds for the tunnel to come up before giving up
+- Detects both `tun*` and `proton*` interfaces
+- Actively monitors the link and tears OpenVPN down the moment it drops
+- Stops cleanly on Ctrl+C (`killall openvpn`)
+- Auto-elevates with `sudo` when not run as root
 - No additional user input required once running
 
 ---
@@ -47,9 +49,8 @@ Owl removes a common operational mistake: routing traffic through TOR while the 
 |---|---|
 | Python 3.x | Interpreter |
 | OpenVPN | VPN client |
-| TOR | Anonymity service |
-| GNOME Terminal | Each service opens in its own window |
-| Linux + root | Required to bring up the tunnel |
+| GNOME Terminal | The VPN opens in its own window |
+| Linux + root / sudo | Required to bring up and tear down the tunnel |
 
 ### Expected files
 
@@ -71,7 +72,7 @@ chmod +x Owl.py
 sudo python3 Owl.py
 ```
 
-On execution Owl brings up OpenVPN, verifies `tun0`, launches TOR in a second terminal, and keeps monitoring the link until you exit.
+On execution Owl brings up OpenVPN, waits for the interface to appear, prints the connection status, and keeps monitoring the link until it drops or you exit with Ctrl+C.
 
 ---
 
